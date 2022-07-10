@@ -30,12 +30,20 @@ def get_section_number(url, chap_num):
 for type in range(1, 6):
     url_tmp = 'https://jtest.net/tu-vung-n{n}'.format(n=type)
     chapter_max = get_chapter_number(url_tmp)
-    section_max = get_section_number(url_tmp)
+    res = list()
+    # database sqplite
+    connection = sqlite3.connect(
+        "db_type.db")
+    cursor = connection.cursor()
+    cursor.execute(
+        '''create table N{n} (chapter_id INTERGER, section_id INTERGER, mp3_link text,Han_TU text,Tieng_Nhat text,Nghia_Viet text,vd_TN text,vd_TV text)'''.format(n=type))
+
+    # get_all_data
     for chapter in range(1, chapter_max):
         section_max = get_section_number(url_tmp, chapter)
         for section in range(1, section_max):
-            url = 'https://jtest.net/tu-vung-n4/chapter-{num1}/section-{num2}'.format(
-                num1=chapter, num2=section)
+            url = 'https://jtest.net/tu-vung-n{n}/chapter-{num1}/section-{num2}'.format(
+                n=type, num1=chapter, num2=section)
 
             response = requests.get(url)
             soup = BeautifulSoup(response.content, 'html.parser')
@@ -45,17 +53,16 @@ for type in range(1, 6):
             )
             # print(filter_each[1])
             # print(filter_each[36])
-            res = list()
-            index = 1
             for i in range(1, len(filter_each)):
+                tmp = (chapter, section,)
                 # Lấy link .mp3
                 get_mp3 = filter_each[i].find(
                     'button', attrs={'type': 'button', 'class':
                                      'btn btn-link playWordSound'})
                 if get_mp3 is None:
-                    tmp = ('',)
+                    tmp += ('',)
                 else:
-                    tmp = (str(get_mp3['value']),)
+                    tmp += (str(get_mp3['value']),)
 
                 # print(str(get_mp3['value']))
                 # Lấy từ vựng : Hán tự, Tiếng Nhật, nghĩa Việt
@@ -83,22 +90,16 @@ for type in range(1, 6):
                 # list lưu tuple
                 res.append(tmp)
 
-            # database sqplite
-            connection = sqlite3.connect(
-                "test_chap{num1}.db".format(num1=chapter))
-            cursor = connection.cursor()
+    # database sqplite
+    cursor.executemany(
+        "insert into N{n} (chapter_id, section_id,mp3_link,Han_TU,Tieng_Nhat,Nghia_Viet,vd_TN,vd_TV) VALUES (?,?,?,?,?,?,?,?)".format(n=type), res)
+    # connection.commit()
 
-            cursor.execute(
-                '''create table bai{num2} (mp3_link text,Han_TU text,Tieng_Nhat text,Nghia_Viet text,vd_TN text,vd_TV text)'''.format(num2=section))
-            cursor.executemany(
-                "insert into bai{num2} (mp3_link,Han_TU,Tieng_Nhat,Nghia_Viet,vd_TN,vd_TV) VALUES (?,?,?,?,?,?)".format(num2=section), res)
-            # connection.commit()
+    # Export data to csv file
+    cursor.execute('select * from N{n}'.format(n=type))
+    with open("N{n}.csv".format(n=type), 'w', newline='', encoding="utf-8") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow([i[0] for i in cursor.description])
+        csv_writer.writerows(cursor)
 
-            # Export data to csv file
-            cursor.execute('select * from bai{num2}'.format(num2=section))
-            with open("N4\\Chap{num1}\\bai{num2}.csv".format(num1=chapter, num2=section), 'w', newline='', encoding="utf-8") as csv_file:
-                csv_writer = csv.writer(csv_file)
-                csv_writer.writerow([i[0] for i in cursor.description])
-                csv_writer.writerows(cursor)
-
-            connection.close()
+    connection.close()
