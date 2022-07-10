@@ -39,9 +39,9 @@ for type in range(1, 6):
         '''create table N{n} (chapter_id INTERGER, section_id INTERGER, mp3_link text,Han_TU text,Tieng_Nhat text,Nghia_Viet text,vd_TN text,vd_TV text)'''.format(n=type))
 
     # get_all_data
-    for chapter in range(1, chapter_max):
+    for chapter in range(1, chapter_max+1):
         section_max = get_section_number(url_tmp, chapter)
-        for section in range(1, section_max):
+        for section in range(1, section_max+1):
             url = 'https://jtest.net/tu-vung-n{n}/chapter-{num1}/section-{num2}'.format(
                 n=type, num1=chapter, num2=section)
 
