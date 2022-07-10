@@ -36,7 +36,7 @@ for type in range(1, 6):
         "db_type.db")
     cursor = connection.cursor()
     cursor.execute(
-        '''create table N{n} (chapter_id INTERGER, section_id INTERGER, mp3_link text,Han_TU text,Tieng_Nhat text,Nghia_Viet text,vd_TN text,vd_TV text)'''.format(n=type))
+        '''create table N{n} (ID INTERGER PRIMARY KEY, chapter_id INTERGER, section_id INTERGER, mp3_link text,Han_TU text,Tieng_Nhat text,Nghia_Viet text,vd_TN text,vd_TV text)'''.format(n=type))
 
     # get_all_data
     for chapter in range(1, chapter_max+1):
